@@ -3,6 +3,7 @@
 > *On an average day, there are about 60 confessions broadcasted on the Tufts Confessions Facebook page. The page receives about 1132 confessions in a given month and since its creation in 2013, it has posted nearly 25,000 anonymous confessions of Tufts students. Clearly, we have a lot to say. But what are we all talking about and is it important?*
 
  An interactive visualization of the latent topics in Tufts Confessions using topic modelling (LDA).
+
 ---
 
 **Read more at: http://tuftsenigma.org**
