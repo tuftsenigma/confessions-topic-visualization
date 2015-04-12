@@ -1,0 +1,182 @@
+<meta charset="utf-8">
+<link rel="stylesheet" type="text/css" href="topicviz.css">
+
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
+
+<div id="topicv"></div>
+
+<script>
+var width = 700,
+    height = 550,
+    xshift = -150,
+    yshift = -10;
+
+
+var tip = d3.tip()
+  .attr('class', 'd3-tip')
+  .style("position", "absolute")
+  .offset(function(d) {
+    console.log(d);
+    return [400 - d.y,640 - d.x]
+  })
+  .html(function(d) {
+      if (!d.children) {
+        tip.style("visibility", "visible");
+        text = "<span style='color:#C80000'>Common words</span><br><br>";
+        for (var i = 0, len = d["words"].length; i < len; i++) {
+          text += "'" + d["words"][i] + "'" + "<br>";
+        }
+        return text;
+      } else {
+        // hide
+        tip.style("visibility", "hidden");
+        return ""; 
+      }
+  });
+
+
+var svg = d3.select("#topicv").append("svg")
+    .attr("width", width)
+    .attr("height", height)
+    .append("g")
+        .attr("transform", "translate(50,50)")
+    .call(tip);
+
+
+// input data - *HOST DEPENDENT*
+d3.json("topictree.json", function(data) {
+var pack = d3.layout.pack()
+    .size([width, height - 50])
+    .padding(5);
+
+// title
+svg.append("text")
+        .attr("x", 0)             
+        .attr("y", -35)
+        .style("font-size", "20px") 
+        .text("Specific Topics Expressed in Tufts Confessions");
+
+svg.append("text")
+        .attr("x", 0)             
+        .attr("y", -13)
+        .style("font-size", "16px")
+        .attr("fill", "#989898")
+        .text("Statistical topic groupings of confessions");
+
+  var text = svg.append("g")
+    .attr("class", "labels")
+  .selectAll("text")
+    .data(data).enter()
+      .append("text")
+        .text(function(d) {
+          return d.topic;
+        })
+      .attr("text-anchor", "middle")
+      .style("fill", "black")
+      .attr("dx", function(d, i) { return d.topic.length*15; })
+      .attr("dy", 60)
+      .style("font-size", "15px")
+      .style("text-align", "center")
+      .attr("pointer-events", "none");
+
+  var nodes = pack.nodes(data);
+  var node = svg.selectAll(".node")
+      .data(nodes)
+      .enter()
+      .append("g")
+        .attr("class", "node")
+        .attr("transform", function(d) { return "translate(" + (d.x + xshift) + "," + (d.y + yshift) + ")";});
+
+  node.append("circle")
+       .style("visibility", function(d) { return d.children ? "hidden" : "visible" })
+      .attr("r", function(d) { return d.r; })
+      .attr("fill", function(d) { return d.children ? "#e3e3e3" : "steelblue"})
+      .attr("opacity", function(d) { return d.children ? 0.0 : 1.0})
+      .attr("stroke", function(d) { return d.children ? "#e3e3e3" : "black"})
+      .attr("stroke-width", "0")
+      .on("mouseover", mouseOver)
+      .on("mouseover.tooltip", tip.show)
+      .on("mouseout", mouseOut)
+      .on("mouseout.tooltip", tip.hide);
+
+
+  // topic text
+  node.append("text")
+      .text(function(d) {
+        if (!d.children) {
+          var text = "";
+          for (var i = 0, len = d["name"].length; i < len; i++) {
+            text += d["name"].charAt(i);
+            if (d["name"].charAt(i) == " ") {
+              text += "\n";
+            }
+          }
+          return text;
+        } else {
+          return "";
+        }
+      })
+      .attr("text-anchor", "middle")
+      .style("fill", "white")
+      .style("font-size", function(d) {
+        size = 15 - (d.name.length/2)
+        if (d.value > 4000) {
+          size += d.value/600;
+        }
+        return size;
+      })
+      .attr('padding', '2px;')
+      .attr("pointer-events", "none");
+
+  // popularity stat text
+  node.append("text")
+      .text(function(d) {
+        if (!d.children) {
+          text = "" + d["popularity"];
+          text = text.substring(2,4);
+          if (text.charAt(0) == 0) {
+            text = text.substring(1,4);
+          }
+          return text + "%";
+        } else {
+          return "";
+        }
+      })
+      .attr("text-anchor", "middle")
+      .style("fill", "white")
+      .style("font-size", function(d){
+        size = 15 - (d.name.length/2)
+        if (d.value > 4000) {
+          size += d.value/600;
+        }
+        return size;
+      })
+      .attr("y", function(d){
+        size = 15 - (d.name.length/2)
+        if (d.value > 4000) {
+          size += d.value/600;
+        }
+        return size;     
+
+      })
+      .style("text-align", "center")
+      .attr("pointer-events", "none");
+
+
+  // provides node animation for mouseover
+    function mouseOver() {
+        d3.select(this).transition()
+            .duration(300)
+            .attr("opacity", 0.6);
+    };
+
+    function mouseOut() {
+        d3.select(this).transition()
+            .duration(300)
+            .attr("opacity", 1.0);
+
+    };
+
+});
+</script>
